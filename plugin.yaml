@@ -1,0 +1,18 @@
+name: agent-chronicle
+version: "1.0.0"
+description: "AI-perspective journaling for Hermes — generate diary entries, log quotes, curiosities, decisions and relationship notes conversationally"
+author: robbyczgw-cla
+requires_env: []
+optional_env:
+  - HERMES_CHRONICLE_DIR
+  - HERMES_CHRONICLE_MODEL
+  - HERMES_API_KEY
+provides_tools:
+  - chronicle_generate
+  - chronicle_add_quote
+  - chronicle_add_curiosity
+  - chronicle_add_decision
+  - chronicle_update_relationship
+  - chronicle_view_today
+  - chronicle_list_quotes
+provides_hooks: []
