@@ -1,0 +1,13 @@
+{
+  "privacy": "private",
+  "diary_dir": "~/.hermes/chronicle",
+  "memory_integration": true,
+  "model": "anthropic/claude-sonnet-4-6",
+  "features": {
+    "quotes": true,
+    "curiosity": true,
+    "decisions": true,
+    "relationship": true,
+    "memory_integration": true
+  }
+}

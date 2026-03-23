@@ -1,0 +1,7 @@
+__pycache__/
+exports/
+config.json
+*.pyc
+*.pyo
+*.pdf
+*.html
