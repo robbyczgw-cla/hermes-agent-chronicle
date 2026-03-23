@@ -104,11 +104,11 @@ python scripts/export.py --format html --days 7 --output exports/weekly.html
 Daily generation at 23:55 UTC:
 
 ```cron
-55 23 * * * cd /path/to/agent-chronicle && /usr/bin/python3 scripts/generate.py >> /tmp/agent-chronicle.log 2>&1
+55 23 * * * cd /home/hermes/hermes-agent-chronicle && /usr/bin/python3 scripts/generate.py >> /tmp/agent-chronicle.log 2>&1
 ```
 
-Daily generation with explicit environment:
+Daily generation with explicit model override:
 
 ```cron
-55 23 * * * HERMES_CHRONICLE_MODEL=anthropic/claude-sonnet-4-6 HERMES_API_KEY=... cd /path/to/agent-chronicle && /usr/bin/python3 scripts/generate.py
+55 23 * * * cd /home/hermes/hermes-agent-chronicle && HERMES_CHRONICLE_MODEL=anthropic/claude-sonnet-4-6 /usr/bin/python3 scripts/generate.py >> /tmp/agent-chronicle.log 2>&1
 ```
