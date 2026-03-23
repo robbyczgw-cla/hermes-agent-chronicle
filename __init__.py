@@ -13,7 +13,7 @@ from typing import Any
 _SCRIPTS = Path(__file__).parent / "scripts"
 
 
-def _run(script: str, args: list[str]) -> dict:
+def _run(script: str, args: list) -> dict:
     """Run a chronicle script as subprocess and return result dict."""
     cmd = [sys.executable, str(_SCRIPTS / script)] + args
     try:
@@ -33,21 +33,18 @@ def _run(script: str, args: list[str]) -> dict:
 
 def _chronicle_generate(args: dict, **_) -> str:
     context = args.get("context", "").strip()
-    script_args = []
     if context:
         import tempfile, os
         tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
         tmp.write(context)
         tmp.close()
-        script_args = ["--from-file", tmp.name]
-    else:
-        script_args = ["--today"]
-    result = _run("generate.py", script_args)
-    if context:
+        result = _run("generate.py", ["--from-file", tmp.name])
         try:
             os.unlink(tmp.name)
         except Exception:
             pass
+    else:
+        result = _run("generate.py", ["--today"])
     return json.dumps(result)
 
 
@@ -102,89 +99,125 @@ def _chronicle_list_quotes(args: dict, **_) -> str:
 # ── Plugin registration ────────────────────────────────────────────────────────
 
 def register(ctx: Any) -> None:
+
     ctx.register_tool(
         name="chronicle_generate",
-        description="Generate today's AI-perspective diary entry. Optionally provide session context (what happened today) to make the entry richer. Saves to ~/.hermes/chronicle/YYYY-MM-DD.md.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "context": {
-                    "type": "string",
-                    "description": "Optional summary of today's session or events to include in the diary entry.",
-                }
+        toolset="productivity",
+        schema={
+            "name": "chronicle_generate",
+            "description": "Generate today's AI-perspective diary entry and save it to ~/.hermes/chronicle/. Optionally provide session context to make the entry richer.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "type": "string",
+                        "description": "Optional summary of today's session or events to include in the diary entry.",
+                    }
+                },
+                "required": [],
             },
-            "required": [],
         },
-        handler=_chronicle_generate,
+        handler=lambda args, **kw: _chronicle_generate(args, **kw),
+        emoji="📜",
     )
 
     ctx.register_tool(
         name="chronicle_add_quote",
-        description="Add a memorable quote to the Quote Hall of Fame. Use when the user says something worth keeping, or when you want to capture a notable exchange.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "quote": {"type": "string", "description": "The quote text to save."},
-                "context": {"type": "string", "description": "Optional context about when/why this quote matters."},
-                "source": {"type": "string", "description": "Optional source or speaker attribution."},
+        toolset="productivity",
+        schema={
+            "name": "chronicle_add_quote",
+            "description": "Add a memorable quote to the Chronicle Quote Hall of Fame.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "quote": {"type": "string", "description": "The quote text to save."},
+                    "context": {"type": "string", "description": "Optional context about when/why this quote matters."},
+                    "source": {"type": "string", "description": "Optional source or speaker attribution."},
+                },
+                "required": ["quote"],
             },
-            "required": ["quote"],
         },
-        handler=_chronicle_add_quote,
+        handler=lambda args, **kw: _chronicle_add_quote(args, **kw),
+        emoji="💬",
     )
 
     ctx.register_tool(
         name="chronicle_add_curiosity",
-        description="Add a question or topic to the Curiosity Backlog — things worth exploring later.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "question": {"type": "string", "description": "The question or topic to add."},
-                "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Priority level. Default: medium."},
+        toolset="productivity",
+        schema={
+            "name": "chronicle_add_curiosity",
+            "description": "Add a question or topic to the Chronicle Curiosity Backlog — things worth exploring later.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "question": {"type": "string", "description": "The question or topic to add."},
+                    "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Priority level. Default: medium."},
+                },
+                "required": ["question"],
             },
-            "required": ["question"],
         },
-        handler=_chronicle_add_curiosity,
+        handler=lambda args, **kw: _chronicle_add_curiosity(args, **kw),
+        emoji="🔮",
     )
 
     ctx.register_tool(
         name="chronicle_add_decision",
-        description="Log a decision to Decision Archaeology — records judgment calls with reasoning for later review.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "decision": {"type": "string", "description": "The decision or action taken."},
-                "reasoning": {"type": "string", "description": "Why this decision was made."},
-                "outcome": {"type": "string", "description": "Optional: known outcome or result."},
+        toolset="productivity",
+        schema={
+            "name": "chronicle_add_decision",
+            "description": "Log a decision to Chronicle Decision Archaeology — records judgment calls with reasoning for later review.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "decision": {"type": "string", "description": "The decision or action taken."},
+                    "reasoning": {"type": "string", "description": "Why this decision was made."},
+                    "outcome": {"type": "string", "description": "Optional: known outcome or result."},
+                },
+                "required": ["decision", "reasoning"],
             },
-            "required": ["decision", "reasoning"],
         },
-        handler=_chronicle_add_decision,
+        handler=lambda args, **kw: _chronicle_add_decision(args, **kw),
+        emoji="🏛",
     )
 
     ctx.register_tool(
         name="chronicle_update_relationship",
-        description="Add a note to Relationship Evolution — track how the dynamic between you and the user is developing.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "note": {"type": "string", "description": "Note about the relationship dynamic or interaction pattern."},
+        toolset="productivity",
+        schema={
+            "name": "chronicle_update_relationship",
+            "description": "Add a note to Chronicle Relationship Evolution — track how the dynamic between agent and user is developing.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "note": {"type": "string", "description": "Note about the relationship dynamic or interaction pattern."},
+                },
+                "required": ["note"],
             },
-            "required": ["note"],
         },
-        handler=_chronicle_update_relationship,
+        handler=lambda args, **kw: _chronicle_update_relationship(args, **kw),
+        emoji="🤝",
     )
 
     ctx.register_tool(
         name="chronicle_view_today",
-        description="View today's existing diary entry if one has already been generated.",
-        parameters={"type": "object", "properties": {}, "required": []},
-        handler=_chronicle_view_today,
+        toolset="productivity",
+        schema={
+            "name": "chronicle_view_today",
+            "description": "View today's existing Chronicle diary entry if one has already been generated.",
+            "input_schema": {"type": "object", "properties": {}, "required": []},
+        },
+        handler=lambda args, **kw: _chronicle_view_today(args, **kw),
+        emoji="📖",
     )
 
     ctx.register_tool(
         name="chronicle_list_quotes",
-        description="List all saved quotes from the Quote Hall of Fame.",
-        parameters={"type": "object", "properties": {}, "required": []},
-        handler=_chronicle_list_quotes,
+        toolset="productivity",
+        schema={
+            "name": "chronicle_list_quotes",
+            "description": "List all saved quotes from the Chronicle Quote Hall of Fame.",
+            "input_schema": {"type": "object", "properties": {}, "required": []},
+        },
+        handler=lambda args, **kw: _chronicle_list_quotes(args, **kw),
+        emoji="✨",
     )
