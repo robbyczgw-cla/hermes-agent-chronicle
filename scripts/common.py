@@ -9,6 +9,24 @@ from typing import Any, Dict, Optional
 import requests
 
 
+def _load_dotenv() -> None:
+    """Load ~/.hermes/.env into os.environ if not already set."""
+    env_path = Path.home() / ".hermes" / ".env"
+    if not env_path.exists():
+        return
+    with env_path.open() as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            if key and key not in os.environ:
+                os.environ[key] = val.strip()
+
+_load_dotenv()
+
+
 DEFAULT_MODEL = "anthropic/claude-sonnet-4-6"
 DEFAULT_PRIVACY = "private"
 VALID_PRIVACY_LEVELS = {"private", "shareable", "public"}
@@ -130,7 +148,7 @@ def render_template(name: str, context: Dict[str, str]) -> str:
 
 def call_hermes_api(prompt: str, system: str, model: str) -> str:
     headers = {"Content-Type": "application/json"}
-    api_key = os.getenv("HERMES_API_KEY")
+    api_key = os.environ.get("HERMES_API_KEY") or os.environ.get("API_SERVER_KEY")
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
 
